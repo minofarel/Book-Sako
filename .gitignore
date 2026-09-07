@@ -1,0 +1,5 @@
+build/*.mp4
+build/chunks/
+out/*.mp4
+__pycache__/
+*.pyc
