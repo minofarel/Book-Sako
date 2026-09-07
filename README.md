@@ -64,20 +64,23 @@ breaks sur les flashs → silence → accord de guitare conclusif.
 | `pole.py` | Le spot 1:1 « pole position » (séquences dédiées + runner). |
 | `music.py` | Synthèse des bandes-son (`build`, `build_pole`). |
 
-> **Note sur les assets.** Le prompt fournissait `card_sako.png` et
-> `logo_sako_blanc.png`, mais seul le `.md` était présent sur le disque de la
-> session (l'image de la carte était visible dans la conversation, pas
-> enregistrée en fichier). Les deux assets ont donc été **régénérés en
-> procédural** (`make_assets.py`) d'après le visuel de référence : dégradé
-> argenté, croix d'Agadez en pointillisme fin, wordmark « Sako », « VISA
-> Platinum ». Remplacez-les par les fichiers officiels si disponibles.
+> **Note sur les assets.** Les **fichiers officiels** sont en place :
+> `assets/card_sako.png` (carte 1536×969) et `assets/logo_sako_blanc.png`
+> (wordmark « Sako » Montserrat, blanc sur transparent) ; `assets/Sora.ttf` pour
+> la typo à l'écran. Le black logo officiel est conservé
+> (`Logo_Sako_Montserrat_Noir.png`).
+>
+> `src/make_assets.py` reste un **générateur de secours** : il régénère une carte
+> et un logo procéduraux (croix d'Agadez en pointillisme) mais écrit désormais
+> vers `*_procedural.png` afin de **ne jamais écraser** les fichiers officiels.
+> Il n'est nécessaire que si les assets officiels manquent.
 
 ## Reproduire
 
 ```bash
 pip install numpy pillow            # + ffmpeg dans le PATH
-# police variable Sora dans assets/Sora.ttf (incluse)
-python3 src/make_assets.py          # (ré)génère la carte + le logo
+# assets officiels dans assets/ (card_sako.png, logo_sako_blanc.png, Sora.ttf)
+# python3 src/make_assets.py        # SECOURS uniquement -> *_procedural.png
 python3 src/music.py out/sako_music.wav 29.1            # bande-son principale
 python3 src/music.py out/sako_pole_music.wav 22.0 pole  # bande-son pole
 bash scripts_build.sh 9x16 out/sako_teaser_9x16.mp4     # rendu 9:16

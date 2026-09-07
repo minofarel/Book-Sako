@@ -1,5 +1,6 @@
 """
-Regenerate the two image assets procedurally, matching the reference:
+FALLBACK generator (official assets ship in assets/). Writes *_procedural.png
+so it never clobbers the official card/logo. Regenerates, matching the reference:
   assets/card_sako.png       1536x969  silver, pointillist Agadez cross,
                              "Sako" wordmark top-left, "VISA Platinum" top-right
   assets/logo_sako_blanc.png white "Sako" wordmark (+ mark) on transparent
@@ -256,8 +257,8 @@ def main():
     pw = draw.textlength(ptxt, font=pfnt)
     draw.text((CARD_W - 70 - pw, 182), ptxt, font=pfnt, fill=(250, 250, 250))
 
-    pim.save("assets/card_sako.png")
-    print("wrote assets/card_sako.png", pim.size)
+    pim.save("assets/card_sako_procedural.png")
+    print("wrote assets/card_sako_procedural.png (fallback only)", pim.size)
 
     # ---- logo_sako_blanc.png : white mark + wordmark on transparent -------
     LW, LH = 720, 220
@@ -277,8 +278,8 @@ def main():
     w2 = font(132, "Bold")
     ld.text((ox + 2 * R2 + 40, LH / 2 - 82), "Sako", font=w2, fill=(255, 255, 255, 255))
     lim = lim.crop(lim.getbbox())
-    lim.save("assets/logo_sako_blanc.png")
-    print("wrote assets/logo_sako_blanc.png", lim.size)
+    lim.save("assets/logo_sako_procedural.png")
+    print("wrote assets/logo_sako_procedural.png (fallback only)", lim.size)
 
 
 if __name__ == "__main__":
