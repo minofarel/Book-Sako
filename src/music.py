@@ -212,6 +212,22 @@ def laser(dur=0.5, amp=0.15):
     return x.astype(np.float32) * amp
 
 
+def creak(dur=1.4, amp=0.28):
+    """A 'grincement' — a slowly pitch-wobbling resonant scrape."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    base = np.diff(RNG.uniform(-1, 1, n + 1))
+    f = 220 + 90 * np.sin(2 * np.pi * 1.3 * t) * (t / dur)
+    out = np.zeros(n, dtype=np.float32)
+    win = 2048
+    for s in range(0, n, win):
+        seg = base[s:s + win]
+        c = float(f[min(s, n - 1)])
+        out[s:s + len(seg)] = fft_band(seg, c - 120, c + 260)
+    out *= np.sin(np.pi * t / dur) ** 0.6 * (0.6 + 0.4 * (t / dur))
+    return out.astype(np.float32) * amp
+
+
 def riser(dur=1.5, amp=0.4):
     n = int(dur * SR)
     t = np.arange(n) / SR
@@ -323,10 +339,76 @@ def build(dur):
     return buf
 
 
+def build_pole(dur):
+    """Soundtrack for the 1:1 pole-position spot (~22s), F1-inspired arc."""
+    N = int(dur * SR)
+    buf = np.zeros((N, 2), dtype=np.float32)
+
+    # 0-3s : lockup + countdown 0:02 -> DÉPART
+    add(buf, drone(A2, 3.4, 0.16), 0.0, 0.5)
+    for t in (0.0, 1.0, 2.0):
+        add(buf, ding(0.3), t, 0.5)
+        add(buf, tick(0.35), t, 0.5)
+    add(buf, riser(1.4, 0.4), 1.5, 0.5)
+    add(buf, boom(0.95), 2.85, 0.5)          # DÉPART
+    add(buf, whoosh(0.6, 0.55), 2.75, 0.5)
+
+    # 3-6s : card on asphalt + sweep (engine-like groove)
+    for t in np.arange(3.0, 6.0, BEAT):
+        add(buf, calebasse(0.6), t, 0.5)
+        add(buf, djembe(slap=False, amp=0.4), t + BEAT / 2, 0.42)
+        add(buf, shaker(0.2), t + BEAT / 2, 0.6)
+    add(buf, bass(A2, 1.4, 0.5), 3.0, 0.5)
+    add(buf, whoosh(0.6, 0.4), 3.8, 0.55)    # silver sweep
+    add(buf, ks_pluck(A3, 1.4, amp=0.36), 4.2, 0.5)
+    add(buf, ks_pluck(E4, 1.2, amp=0.32), 5.1, 0.5)
+
+    # 6-11s : trapdoor -> burst -> comet
+    add(buf, creak(1.8, 0.3), 6.0, 0.5)
+    add(buf, riser(2.2, 0.42), 6.6, 0.5)
+    add(buf, boom(1.0), 8.8, 0.5)            # light burst
+    add(buf, ding(0.5), 8.85, 0.5)
+    add(buf, whoosh(0.8, 0.6), 9.2, 0.7)     # comet flies right (pan)
+    add(buf, ks_pluck(A3, 2.0, amp=0.34), 8.9, 0.5)
+
+    # 11-14s : tagline typed
+    add(buf, pad_chord([A2, C3, E3, A3], 3.4, 0.2), 11.0, 0.5)
+    tt = 11.0
+    while tt < 13.4:
+        add(buf, tick(0.28), tt, RNG.uniform(0.3, 0.7))
+        tt += 0.11
+
+    # 14-18s : diamond card + sweep + champagne
+    for t in np.arange(14.0, 18.0, BEAT):
+        add(buf, calebasse(0.6), t, 0.5)
+        add(buf, djembe(slap=(int(round((t-14)/BEAT)) % 2 == 1), amp=0.4), t + BEAT / 2, 0.42)
+        add(buf, shaker(0.2), t + BEAT / 2, 0.6)
+    add(buf, bass(A2, 1.4, 0.5), 14.0, 0.5)
+    add(buf, whoosh(0.6, 0.45), 14.3, 0.5)
+    add(buf, ding(0.45), 15.0, 0.55)
+    add(buf, ks_pluck(C4, 1.5, amp=0.34), 15.2, 0.5)
+
+    # 18-22s : outro logo reveal + resolve
+    add(buf, whoosh(0.7, 0.4), 18.0, 0.5)
+    add(buf, ding(0.5), 18.2, 0.55)
+    add(buf, boom(0.85), 18.1, 0.5)
+    for k, f in enumerate([A2, E3, A3, C4, E4]):
+        add(buf, ks_pluck(f, 4.0, damp=0.9977, amp=0.33), 18.3 + k * 0.05, 0.5)
+    add(buf, pad_chord([A2, E3, A3, C4], 4.0, 0.2), 18.3, 0.5)
+
+    buf = np.tanh(buf * 1.05) * 0.93
+    fade_n = int(1.6 * SR)
+    if N > fade_n:
+        buf[N - fade_n:] *= np.linspace(1, 0, fade_n)[:, None]
+    buf[:int(0.05 * SR)] *= np.linspace(0, 1, int(0.05 * SR))[:, None]
+    return buf
+
+
 def main():
     out = sys.argv[1] if len(sys.argv) > 1 else "out/sako_music.wav"
     dur = float(sys.argv[2]) if len(sys.argv) > 2 else 29.1
-    buf = build(dur)
+    mode = sys.argv[3] if len(sys.argv) > 3 else "main"
+    buf = build_pole(dur) if mode == "pole" else build(dur)
     peak = np.max(np.abs(buf))
     print(f"peak {peak:.3f}  len {len(buf)/SR:.2f}s")
     data = np.clip(buf, -1, 1)

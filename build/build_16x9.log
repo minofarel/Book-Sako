@@ -5,3 +5,38 @@
   frame 90 (91/270)  573 ms/frame
   frame 120 (121/270)  514 ms/frame
   frame 150 (151/270)  461 ms/frame
+  frame 180 (181/270)  427 ms/frame
+  frame 210 (211/270)  400 ms/frame
+  frame 240 (241/270)  393 ms/frame
+done /home/user/Book-Sako/build/chunks/16x9_c0.mp4  107.9s
+  frame 270 (1/300)  1121 ms/frame
+  frame 300 (31/300)  156 ms/frame
+  frame 330 (61/300)  150 ms/frame
+  frame 360 (91/300)  141 ms/frame
+  frame 390 (121/300)  141 ms/frame
+  frame 420 (151/300)  140 ms/frame
+  frame 450 (181/300)  137 ms/frame
+  frame 480 (211/300)  132 ms/frame
+  frame 510 (241/300)  128 ms/frame
+  frame 540 (271/300)  126 ms/frame
+done /home/user/Book-Sako/build/chunks/16x9_c1.mp4  39.2s
+  frame 570 (1/300)  1532 ms/frame
+  frame 600 (31/300)  149 ms/frame
+  frame 630 (61/300)  129 ms/frame
+  frame 660 (91/300)  121 ms/frame
+  frame 690 (121/300)  118 ms/frame
+  frame 720 (151/300)  119 ms/frame
+  frame 750 (181/300)  123 ms/frame
+  frame 780 (211/300)  124 ms/frame
+  frame 810 (241/300)  124 ms/frame
+  frame 840 (271/300)  121 ms/frame
+done /home/user/Book-Sako/build/chunks/16x9_c2.mp4  37.0s
+=== Concat + encode + mux ===
+=== Done: out/sako_teaser_16x9.mp4 (14M) ===
+codec_name=h264
+codec_type=video
+width=1920
+height=1080
+codec_name=aac
+codec_type=audio
+duration=29.000000
