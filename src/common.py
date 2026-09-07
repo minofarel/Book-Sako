@@ -180,6 +180,22 @@ def glow_sprite(radius, power=2.0):
     return g.astype(np.float32)
 
 
+def add_mask(mask, sprite, cx, cy, intensity=1.0):
+    """Additively stamp a single-channel sprite into a 2D float mask."""
+    h, w = mask.shape
+    sh, sw = sprite.shape
+    r = sh // 2
+    x0, y0 = int(round(cx)) - r, int(round(cy)) - r
+    ix0, iy0 = max(0, x0), max(0, y0)
+    ix1, iy1 = min(w, x0 + sw), min(h, y0 + sh)
+    if ix0 >= ix1 or iy0 >= iy1:
+        return mask
+    sx0, sy0 = ix0 - x0, iy0 - y0
+    mask[iy0:iy1, ix0:ix1] += sprite[sy0:sy0 + (iy1 - iy0),
+                                     sx0:sx0 + (ix1 - ix0)] * intensity
+    return mask
+
+
 def add_sprite(img, sprite, cx, cy, color, intensity=1.0):
     """Additively blend a single-channel sprite tinted `color` at (cx, cy)."""
     h, w = img.shape[:2]
@@ -206,7 +222,7 @@ def linear_gradient(h, w, c0, c1, angle_deg=90.0):
     ang = np.deg2rad(angle_deg)
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     t = xx * np.cos(ang) + yy * np.sin(ang)
-    t = (t - t.min()) / (t.ptp() + 1e-6)
+    t = (t - t.min()) / (np.ptp(t) + 1e-6)
     c0 = np.asarray(c0, np.float32)
     c1 = np.asarray(c1, np.float32)
     return (c0[None, None, :] * (1 - t[:, :, None]) + c1[None, None, :] * t[:, :, None])
@@ -216,7 +232,7 @@ def diag_coord(h, w, theta):
     """Precomputed diagonal coordinate d = x cos + y sin, normalised to 0..1."""
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     d = xx * np.cos(theta) + yy * np.sin(theta)
-    return (d - d.min()) / (d.ptp() + 1e-6)
+    return (d - d.min()) / (np.ptp(d) + 1e-6)
 
 
 def light_band(dcoord, center, width):
