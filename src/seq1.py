@@ -56,7 +56,7 @@ class Seq1:
         self.macro_edge = np.clip(e / (e.max() + 1e-6), 0, 1)
 
         # ---- Shot B : full card floating, lit by a moving band -----------
-        cw = int(W * 0.82)
+        cw = int(ctx.U * 0.82)
         ch = int(cw * cardH / cardW)
         bx, by = W / 2, H / 2
         bquad = [(bx - cw / 2, by - ch / 2), (bx + cw / 2, by - ch / 2),

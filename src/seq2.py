@@ -25,7 +25,7 @@ class Seq2:
         cardW, cardH = ctx.card.size
 
         # ---- Plan 1 : big upright card, top prominent --------------------
-        cw = W * 1.55
+        cw = ctx.U * 1.55
         ch = cw * cardH / cardW
         cx = W * 0.5
         ty = H * 0.30

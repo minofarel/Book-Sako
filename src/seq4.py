@@ -40,7 +40,7 @@ class Seq4:
              "tracking": -2, "color": (247, 247, 247)}])
 
         # final lockup pieces
-        self.logo_rgb, self.logo_a = self._logo(int(W * 0.52))
+        self.logo_rgb, self.logo_a = self._logo(int(ctx.U * 0.52))
         lh, lw = self.logo_a.shape
         self.logo_cd = C.diag_coord(lh, lw, np.deg2rad(28))
         self.logo_white = np.full((lh, lw, 3), 255.0, dtype=np.float32)

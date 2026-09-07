@@ -23,12 +23,12 @@ class Seq3:
         self.W, self.H = ctx.W, ctx.H
         W, H = self.W, self.H
 
-        self.card_spr, self.spec = ui.rounded_card(ctx.card, int(W * 0.72))
+        self.card_spr, self.spec = ui.rounded_card(ctx.card, int(ctx.U * 0.72))
         wc, hc = self.card_spr.size
         self.cd = C.diag_coord(hc, wc, np.deg2rad(32))
         self.white_base = np.full((hc, wc, 3), 255.0, dtype=np.float32)
 
-        pr, pa, _ = ctx.lock_pill("Bientôt disponible", scale=W / 1080 * 1.15)
+        pr, pa, _ = ctx.lock_pill("Bientôt disponible", scale=ctx.U / 1080 * 1.15)
         self.pill_rgb, self.pill_a = pr, pa
 
         # titles
@@ -46,7 +46,7 @@ class Seq3:
             line_gap=1.6)
 
         # phone + screens
-        self.pw = int(W * 0.345)
+        self.pw = int(ctx.U * 0.345)
         SCR = (480, int(480 * 2.02))
         self.scr1 = ui.screen_balance(SCR)
         self.scr2 = ui.screen_cards(SCR, self.card_spr)

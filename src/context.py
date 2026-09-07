@@ -75,6 +75,7 @@ class Context:
     def __init__(self, fmt):
         self.fmt = fmt
         self.W, self.H = SIZES[fmt]
+        self.U = min(self.W, self.H)   # sizing unit (=1080 in every format)
         self.card = Image.open("assets/card_sako.png").convert("RGBA")
         self.logo = Image.open("assets/logo_sako_blanc.png").convert("RGBA")
         self.cache = {}
