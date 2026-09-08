@@ -6,6 +6,11 @@ généré **image par image en Python** (Pillow + numpy), streamé en frames
 brutes vers **ffmpeg**, avec une **bande-son originale synthétisée** en numpy.
 Aucun logiciel de montage, aucun navigateur, aucune musique préexistante.
 
+> **Web — carte des flux (`web/`).** Composant HTML responsive et animé qui
+> remplace l'ancien GIF de la carte : la diaspora envoie vers **11 pays** (Ghana
+> inclus), lignes de flux rejouées en animation (SVG + CSS, sans dépendance).
+> Voir [`web/README.md`](web/README.md).
+
 ## Livrables (`out/`)
 
 | Fichier | Format | Durée | Description |
