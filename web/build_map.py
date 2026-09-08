@@ -381,7 +381,7 @@ def build():
             "d": arc_d(pts),
             "delay": round(i * STAGGER, 2),
             "dur": round(dur, 2),
-            "dest": dest,
+            "src": name, "dest": dest,
             "ddx": round(dx, 1), "ddy": round(dy, 1),
         })
         origins_render.append({
@@ -399,7 +399,7 @@ def build():
         "d": arc_d(apts),
         "delay": round(len(ORIGINS) * STAGGER, 2),
         "dur": round(adur, 2),
-        "dest": adest,
+        "src": aname, "dest": adest,
         "ddx": round(dx, 1), "ddy": round(dy, 1),
     })
     atlantic = {"label": aname, "ex": round(ex, 1), "ey": round(ey, 1)}
@@ -426,9 +426,83 @@ def build():
     art = os.path.join(HERE, "diaspora-map.artifact.html")
     with open(art, "w", encoding="utf-8") as fh:
         fh.write(rendered["artifact"])
+
+    # export JSON (à consommer dans un composant maison React/JS)
+    data = json_payload(payload)
+    djson = os.path.join(HERE, "diaspora-map.data.json")
+    with open(djson, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, separators=(",", ":"))
     print(f"[ok] {out}  ({len(rendered['standalone'])//1024} KB)  "
           f"viewBox=0 0 {VIEW_W} {VIEW_H}  pays={len(hi)}  "
           f"fond={len(bg_paths)}  arcs={len(arcs)}")
+    print(f"[ok] {djson}  ({os.path.getsize(djson)//1024} KB)")
+
+
+def _origin_label(o):
+    """Position/ancrage du libellé d'une ville selon son côté."""
+    x, y, side = o["x"], o["y"], o["side"]
+    if side == "t":
+        return {"x": x, "y": round(y - 22, 1), "anchor": "middle"}
+    if side == "b":
+        return {"x": x, "y": round(y + 34, 1), "anchor": "middle"}
+    if side == "r":
+        return {"x": round(x + 20, 1), "y": round(y + 7, 1), "anchor": "start"}
+    return {"x": round(x - 20, 1), "y": round(y + 7, 1), "anchor": "end"}
+
+
+def json_payload(p):
+    """Transforme le payload interne en JSON auto-documenté et stable."""
+    served = []
+    for iso, c in p["hi"].items():
+        item = {
+            "iso": iso,
+            "name": c["label"],
+            "path": c["path"],
+            "label": {"x": c["lx"], "y": c["ly"], "anchor": "middle",
+                      "small": bool(c.get("small"))},
+        }
+        if "leader" in c:
+            tx, ty = c["leader"]
+            item["leader"] = {"x1": c["lx"], "y1": round(c["ly"] - 20, 1),
+                              "x2": tx, "y2": ty}
+        served.append(item)
+
+    origins = []
+    for o in p["origins"]:
+        origins.append({"name": o["name"], "x": o["x"], "y": o["y"],
+                        "offMap": False, "label": _origin_label(o)})
+    atl = p["atlantic"]
+    origins.append({
+        "name": atl["label"], "x": atl["ex"], "y": atl["ey"], "offMap": True,
+        "label": {"x": round(atl["ex"] + 20, 1), "y": round(atl["ey"] + 7, 1),
+                  "anchor": "start"},
+    })
+
+    flows = []
+    for a in p["arcs"]:
+        flows.append({
+            "from": a["src"], "to": a["dest"], "path": a["d"],
+            "durationSec": a["dur"], "delaySec": a["delay"],
+            "arrival": {"x": a["ddx"], "y": a["ddy"]},
+        })
+
+    return {
+        "$schema": "sako-diaspora-map/v1",
+        "meta": {
+            "description": "Carte des flux de transferts Sako : diaspora -> "
+                           "pays d'origine. Coordonnées déjà projetées en "
+                           "unités du viewBox (Web Mercator).",
+            "projection": "web-mercator",
+            "window": {"lon": [LON0, LON1], "lat": [LAT0, LAT1]},
+            "accent": "#B48C42",
+            "servedCount": len(served),
+        },
+        "viewBox": {"width": VIEW_W, "height": VIEW_H},
+        "background": p["bg"],
+        "served": served,
+        "origins": origins,
+        "flows": flows,
+    }
 
 
 # render_html défini dans build_map_html.py (importé) pour garder ce

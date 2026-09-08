@@ -29,9 +29,55 @@ dans n'importe quelle section.
 |---|---|
 | `diaspora-map.html` | **Livrable** : page HTML autonome (aucune dépendance de carto au runtime, animation 100 % CSS). |
 | `diaspora-map.artifact.html` | Même contenu sans l'enveloppe `<html>`/`<head>` — pour publication en Artifact Claude. |
+| `diaspora-map.data.json` | **Données de la carte** (déjà projetées) à consommer dans un composant maison. |
+| `react/SakoMap.jsx` + `react/sako-map.css` | Composant React prêt à l'emploi qui rend le JSON. |
 | `build_map.py` | Générateur : projette la géométrie (Web Mercator) en chemins SVG, calcule libellés, origines, arcs. |
 | `build_map_html.py` | Gabarit HTML/CSS + assemblage du SVG. |
 | `countries.geo.json` | Géométrie source des pays (Natural Earth, domaine public, via `johan/world.geo.json`). |
+
+## Données JSON (`diaspora-map.data.json`)
+
+Toutes les coordonnées sont **déjà projetées** dans le repère du `viewBox`
+(pas de calcul de carto côté client). Schéma :
+
+```jsonc
+{
+  "viewBox": { "width": 1720, "height": 1201 },
+  "meta": { "projection": "web-mercator", "accent": "#B48C42", "servedCount": 11, … },
+  "background": [ "M… L… Z", … ],            // pays inactifs (gris) : chemins SVG
+  "served": [                                 // 11 pays desservis (noir)
+    {
+      "iso": "GHA", "name": "Ghana",
+      "path": "M… Z",                         // chemin SVG du pays
+      "label": { "x": 600, "y": 1150, "anchor": "middle", "small": true },
+      "leader": { "x1": 600, "y1": 1130, "x2": 649, "y2": 1016 }  // optionnel
+    }, …
+  ],
+  "origins": [                                // villes d'envoi
+    { "name": "Londres", "x": …, "y": …, "offMap": false,
+      "label": { "x": …, "y": …, "anchor": "middle" } }, …
+  ],
+  "flows": [                                  // flux animés origine -> pays
+    { "from": "Londres", "to": "GHA", "path": "M… C… ",
+      "durationSec": 3.15, "delaySec": 0,
+      "arrival": { "x": …, "y": … } }, …
+  ]
+}
+```
+
+Rendu : dessiner `background` (gris) puis `served` (noir), tracer chaque
+`flows[].path` avec `pathLength="1"` et une comète animée (voir `react/sako-map.css`,
+`@keyframes sk-comet`), en injectant `--dur`/`--delay` depuis
+`durationSec`/`delaySec` ; poser un halo sur `flows[].arrival`, les points sur
+`origins`, puis les libellés (`served[].label`, `origins[].label`) et les lignes
+de rappel (`served[].leader`).
+
+### React
+
+```jsx
+import SakoMap from "./react/SakoMap";   // importe le JSON + le CSS
+export default () => <SakoMap />;
+```
 
 ## Régénérer
 
