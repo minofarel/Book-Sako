@@ -65,27 +65,80 @@ def _iter_polys(geom):
     return []
 
 
-def ring_to_svg(ring, quant):
+def _rdp(pts, eps):
+    """Ramer-Douglas-Peucker sur une polyligne OUVERTE (itératif)."""
+    n = len(pts)
+    if n < 3:
+        return pts[:]
+    keep = [False] * n
+    keep[0] = keep[-1] = True
+    stack = [(0, n - 1)]
+    while stack:
+        a, b = stack.pop()
+        if b <= a + 1:
+            continue
+        x0, y0 = pts[a]
+        x1, y1 = pts[b]
+        dx, dy = x1 - x0, y1 - y0
+        seg = math.hypot(dx, dy) or 1e-9
+        dmax, idx = 0.0, -1
+        for i in range(a + 1, b):
+            px, py = pts[i]
+            d = abs(dy * px - dx * py + x1 * y0 - y1 * x0) / seg
+            if d > dmax:
+                dmax, idx = d, i
+        if dmax > eps and idx != -1:
+            keep[idx] = True
+            stack.append((a, idx))
+            stack.append((idx, b))
+    return [pts[i] for i in range(n) if keep[i]]
+
+
+def _rdp_ring(pts, eps):
+    """RDP sur un anneau FERMÉ : coupe au point le plus éloigné du départ
+    puis simplifie chaque moitié (évite la dégénérescence départ==fin)."""
+    if len(pts) > 1 and pts[0] == pts[-1]:
+        pts = pts[:-1]
+    n = len(pts)
+    if n < 4:
+        return pts
+    x0, y0 = pts[0]
+    far, fd = 0, -1.0
+    for i in range(1, n):
+        dd = (pts[i][0] - x0) ** 2 + (pts[i][1] - y0) ** 2
+        if dd > fd:
+            fd, far = dd, i
+    a = _rdp(pts[:far + 1], eps)
+    b = _rdp(pts[far:] + [pts[0]], eps)
+    return a[:-1] + b[:-1]
+
+
+def ring_to_svg(ring, quant, eps):
     """Anneau [[lon,lat],...] -> segment 'M.. L.. Z' projeté et simplifié."""
     pts = []
     last = None
     for lon, lat in ring:
         x, y = project(lon, lat)
-        p = (round(x, quant), round(y, quant))
-        if p != last:                        # supprime les doublons consécutifs
+        p = (x, y)
+        if last is None or abs(x - last[0]) > 1e-6 or abs(y - last[1]) > 1e-6:
             pts.append(p)
             last = p
     if len(pts) < 4:
         return ""
-    d = "M" + " L".join(f"{x},{y}" for x, y in pts) + "Z"
+    if eps > 0:
+        pts = _rdp_ring(pts, eps)
+        if len(pts) < 4:
+            return ""
+    fmt = f"%.{quant}f" if quant > 0 else "%.0f"
+    d = "M" + " L".join(f"{fmt % x},{fmt % y}" for x, y in pts) + "Z"
     return d
 
 
-def geom_to_path(geom, quant=1):
+def geom_to_path(geom, quant=1, eps=0.7):
     parts = []
     for poly in _iter_polys(geom):
         for ring in poly:
-            seg = ring_to_svg(ring, quant)
+            seg = ring_to_svg(ring, quant, eps)
             if seg:
                 parts.append(seg)
     return "".join(parts)
@@ -280,7 +333,7 @@ def build():
             continue
         bxmin, bymin, bxmax, bymax = bbox
         if iso in HIGHLIGHT:
-            path = geom_to_path(geom, quant=1)
+            path = geom_to_path(geom, quant=1, eps=0.6)
             ring = largest_ring(geom)
             clon, clat = centroid_lonlat(ring)
             ax, ay = project(clon, clat)
@@ -303,7 +356,7 @@ def build():
             # arrière-plan : seulement si visible dans la fenêtre
             if bxmax < wxmin or bxmin > wxmax or bymax < wymin or bymin > wymax:
                 continue
-            path = geom_to_path(geom, quant=0)
+            path = geom_to_path(geom, quant=0, eps=1.3)
             if path:
                 bg_paths.append(path)
 

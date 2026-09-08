@@ -6,18 +6,22 @@ Dubaï) envoie de l'argent vers **11 pays** d'Afrique de l'Ouest et centrale —
 **Sénégal, Mali, Burkina Faso, Côte d'Ivoire, Ghana, Togo, Bénin, Niger,
 Nigeria, Tchad, Cameroun**.
 
-Il remplace l'ancien **GIF** statique par un rendu vectoriel :
+Il remplace l'ancien **GIF** statique par un rendu vectoriel, pensé pour être
+posé **tel quel dans une section de landing page** (carte seule, sans titre ni
+légende) :
 
 - le **Ghana** apparaît désormais sur la carte (mis en valeur, accent champagne) ;
 - les **lignes de flux** sont reprises en animation — tracé guide permanent +
   comètes champagne qui remontent de la ville d'envoi vers le pays, vitesse
   visuelle homogène, halo d'arrivée sur chaque pays desservi ;
 - **responsive** : le SVG s'adapte via `viewBox` ; sur mobile la carte défile
-  horizontalement, la légende se replie ; `prefers-reduced-motion` respecté.
+  horizontalement (dégradé de bord comme indice) ; `prefers-reduced-motion`
+  respecté.
 
 Identité respectée : noir / blanc / gris chauds + un seul accent **champagne**
 (réservé au flux vivant), typographie **Sora** (Google Fonts, repli système),
-thème **clair et sombre** automatique.
+**thème clair unique** (pas de mode sombre), fond transparent pour s'insérer
+dans n'importe quelle section.
 
 ## Fichiers
 
